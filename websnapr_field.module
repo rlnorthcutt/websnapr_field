@@ -1,0 +1,116 @@
+<?php
+// $Id: $
+
+/**
+ * @file
+ * Websnapr Field allows links to web pages to be displayed as thumbnails
+ *
+ */
+
+/**
+ * Implements hook_menu()
+ *
+ */
+function websnapr_field_menu() {
+  $items['admin/config/websnapr'] = array(
+    'title' => 'Websnapr Account',
+    'description' => 'Details of your Websnapr Account.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('websnapr_field_admin_settings'),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  return $items;
+}
+
+/**
+ * Our admin form
+ *
+ */
+function websnapr_field_admin_settings() {
+  $form['websnapr_account_key'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Your account key'),
+    '#description' => t('The key given to you by Websnapr.com for access to web thumbnails.'),
+    '#default_value' => variable_get('websnapr_account_key', ''),
+  );
+  return system_settings_form($form);
+}
+
+/**
+ * Declare our theme functions
+ *
+ */
+function websnapr_field_theme() {
+  $theme = array(
+    'websnapr_field_field_formatter_thumbnail' => array(
+      'variables' => array('element' => NULL),
+    ),
+    'websnapr_field_field_formatter_small' => array(
+      'variables' => array('element' => NULL),
+    ),
+  );
+  return $theme;
+}
+
+/**
+ * Declare our formatters
+ *
+ */
+function websnapr_field_field_formatter_info() {
+  return array(
+    'thumbnail' => array(
+      'label' => t('Websnapr thumbnail'),
+      'field types' => array('link_field')
+	),
+    'small' => array(
+      'label' => t('Websnapr small image'),
+      'field types' => array('link_field'),
+	),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function websnapr_field_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  drupal_add_js('http://www.websnapr.com/js/websnapr.js', 'external');
+
+  $elements = array();
+  foreach ($items as $delta => $item) {
+    $elements[$delta] = array(
+      '#markup' => theme('websnapr_field_field_formatter_'. $display['type'], array('element' => $item)),
+    );
+  }
+  return $elements;
+}
+
+function theme_websnapr_field_field_formatter_thumbnail($vars) {
+  $size = 'T';
+  $height = 70;
+  $width = 92;
+  $key = variable_get('websnapr_account_key', '');
+  if ($key) {
+    $link_options = $vars['element'];
+    $item_url = $link_options['query'] ? ($link_options['url'] . '?' . $link_options['query']) : $link_options['url'];
+    $image = '<script type="text/javascript">';
+    $image .= "wsr_snapshot('" . urlencode($item_url) . "', '" . $key."', '" . $size."');";
+    $image .= '</script>';
+    return $image;
+  }
+}
+
+function theme_websnapr_field_field_formatter_small($vars) {
+  $size = 'S';
+  $height = 152;
+  $width = 202;
+  $key = variable_get('websnapr_account_key', '');
+  if ($key) {
+    $link_options = $vars['element'];
+    $item_url = $link_options['query'] ? ($link_options['url'] . '?' . $link_options['query']) : $link_options['url'];
+    $image = '<script type="text/javascript">';
+    $image .= "wsr_snapshot('" . urlencode($item_url) . "', '" . $key."', '" . $size."');";
+    $image .= '</script>';
+    return $image;
+  }
+}

@@ -1,0 +1,7 @@
+; $Id: $
+name = Websnapr Field
+description = Provides the ability to format a link as a Websnapr thumbnail
+dependencies[] = link
+package = CCK
+core = 7.x
+version = "7.x-1.0"
